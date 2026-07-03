@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "skills": {
+    "ml-communication": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-communication/SKILL.md",
+      "computedHash": "beb069667c123f0c6b151385bdba55faa9662452f264fa45de7ca127a9e43f13"
+    },
+    "ml-data-prep": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-data-prep/SKILL.md",
+      "computedHash": "5478098775185b15898bc686ca40e3dcd13436faf5b038355953441b13a86847"
+    },
+    "ml-errors": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-errors/SKILL.md",
+      "computedHash": "a4251e7298614fde1e9c2ae56ea9c49b37cbcd62e9afa42af415e4ac0664a7ad"
+    },
+    "ml-eval": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-eval/SKILL.md",
+      "computedHash": "21c9a8cca933e8091c424fb60df0db814fcc4aa2c0228f56cb42467cea044fbf"
+    },
+    "ml-hf-hub-tools": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-hf-hub-tools/SKILL.md",
+      "computedHash": "93cde9dda023e11561a6fc72b3250a029b83d4bcfaf0fad7cc9fa4d74fae7315"
+    },
+    "ml-inference": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-inference/SKILL.md",
+      "computedHash": "9446d08795b3706960ed5c0aa878fe5b2ac43ae54e47461e3d17caa5f141aa03"
+    },
+    "ml-intern-core": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-intern-core/SKILL.md",
+      "computedHash": "6d2b73128772a435e6971ed79fe4d197534140cd778b171de5c45294859eeee4"
+    },
+    "ml-plan-validate": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-plan-validate/SKILL.md",
+      "computedHash": "19c56d1eb8af90629824be5734a2c748685464e057f158f6a697bfc417b3c526"
+    },
+    "ml-research": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-research/SKILL.md",
+      "computedHash": "db7ca6e3d1c200e00eb3e36512f21733fb4fc014428ece1dfa1dd61b79d75bac"
+    },
+    "ml-spaces-debug": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-spaces-debug/SKILL.md",
+      "computedHash": "17f8da4201afbbb04f4906e2ee701092c0600a77a2fed2efe539f2e5aed23653"
+    },
+    "ml-train-sft": {
+      "source": "poirotw66/ml-intern-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ml-train-sft/SKILL.md",
+      "computedHash": "a76757d5c1c30023a0376ac2dd86a4d0d2b0296162d94f5ed74ee4e6a3dcec13"
+    }
+  }
+}

@@ -11,6 +11,7 @@ env/
 dist/
 build/
 outputs/
-submission.csv
+submission_step*.csv
+catboost_info/
 *.joblib
 .ipynb_checkpoints/

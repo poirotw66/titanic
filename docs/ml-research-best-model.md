@@ -1,8 +1,9 @@
 # Titanic 最佳模型解法 — Phase 1 研究筆記
 
 > 研究日期：2026-07-03  
+> 實作收尾：2026-07-06  
 > 專案：Kaggle [Titanic - Machine Learning from Disaster](https://www.kaggle.com/competitions/titanic)  
-> 階段：ml-research（僅分析，尚未實作）
+> 階段：Phase 1 研究完成 → Phase 3 實作完成（Step 5 LB **0.81578**）
 
 ---
 
@@ -223,27 +224,37 @@ train.csv + test.csv
 
 ### Step 1 — Baseline（半天）
 
-- [ ] `Sex` + `Pclass` + `Age`/`Fare` 中位數填補
-- [ ] `RandomForestClassifier` + `StratifiedKFold(5)`
-- [ ] 產出第一份 `submission.csv`
-- [ ] 目標：CV ≥ 0.78，LB ≥ 0.76
+- [x] `Sex` + `Pclass` + `Age`/`Fare` 中位數填補
+- [x] `RandomForestClassifier` + `StratifiedKFold(5)`
+- [x] 產出 `submission_step1.csv`
+- [x] CV 0.829；**LB 0.751**
 
 ### Step 2 — 特徵工程（半天）
 
-- [ ] Tier 1 全部
-- [ ] Tier 2 選做：`Deck`, `FarePerPerson`, `AgeBin`
-- [ ] 目標：CV ≥ 0.82
+- [x] Tier 1 全部 + Tier 2（`Deck`, `FarePerPerson`）
+- [x] CV 0.827；**LB 0.744**（Deck OneHot 在 test 不穩）
 
 ### Step 3 — 模型優化（1 天）
 
-- [ ] CatBoost 或 LightGBM
-- [ ] 可選：`Optuna` 50–100 trials
-- [ ] 目標：CV ≥ 0.84，LB ≥ 0.80
+- [x] CatBoost + Tier 1–2 特徵
+- [x] CV 0.838；**LB 0.768**
 
 ### Step 4 — 集成（可選）
 
-- [ ] CatBoost + LightGBM + RF soft voting
-- [ ] 目標：LB 0.80–0.83
+- [x] Tier 1 + 正則化 RF / CatBoost soft voting
+- [x] CV 0.831；**LB 0.782**
+
+### Step 5 — 參考 notebook（實際最佳）
+
+- [x] 移植 [`titanic-81-57-leaderboard-top-1-no-cheating.ipynb`](../titanic-81-57-leaderboard-top-1-no-cheating.ipynb) → `features_kaggle815.py`
+- [x] train+test 合併填補、Status、Deck 多步推斷、`Lucky_family` 等
+- [x] CatBoost（depth=4, iter=1000, lr=0.0005）
+- [x] CV 0.824；**LB 0.81578**
+
+### Step 6 — Optuna 調參（進行中）
+
+- [ ] 在 Step 5 特徵上搜尋 CatBoost 超參
+- [ ] 目標：LB ≥ 0.82（邊際提升）
 
 ---
 
@@ -399,6 +410,62 @@ submission.csv（418 列）
 - [x] 釐清「無單一官方標準、但有共識配方」
 - [x] 給出本專案三條付現路線
 
+**下一步（2026-07-06）**：Step 5 已達 LB 0.816；Step 6 Optuna 微調進行中。詳見 §10。
+
+---
+
+## 10. 實作結果與收尾（2026-07-06）
+
+### 10.1 Public Leaderboard 實測
+
+| 提交檔 | 方法摘要 | CV mean | Public LB |
+|--------|----------|---------|-----------|
+| `submission_step1.csv` | RF + Sex/Pclass/Age/Fare | 0.829 | 0.75119 |
+| `submission_step2.csv` | Tier1–2 + RF OneHot | 0.827 | 0.74401 |
+| `submission_step3.csv` | Tier1–2 + CatBoost | 0.838 | 0.76794 |
+| `submission_step4.csv` | Tier1 + 正則 RF/CB voting | 0.831 | **0.78229** |
+| `submission_step5.csv` | **Kaggle 815 notebook 配方** | 0.824 | **0.81578** |
+
+性別 baseline（全 female=1）約 **0.765**。LB **1.0** 多為查表作弊，非 ML 目標（見 §9.4）。
+
+### 10.2 關鍵教訓
+
+1. **CV 高 ≠ LB 高**：Step 3 CV 0.838 但 LB 0.768；應追泛化而非 OOF 極致。
+2. **特徵工程 > 換模型**：Step 5 特徵配方單獨拉開 ~3% LB（0.782 → 0.816）。
+3. **train+test 合併填補**對 Ticket/Deck/Price 有效（notebook 核心技巧）。
+4. **Deck 不可粗暴 OneHot**（Step 2 教訓）；需 domain 多步推斷。
+5. **簡單集成 + 正則化**（Step 4）有助 LB，但不及成熟 FE 配方。
+
+### 10.3 程式碼對照
+
+| 模組 | 對應 Step | 說明 |
+|------|-----------|------|
+| `train.py` + `features.py` | 1–4（歷史） | Pipeline / Tier1 / voting；Step 5+ 以 `features_kaggle815` 為主 |
+| `features_kaggle815.py` | 5+ | notebook 特徵工程移植 |
+| `train.py` | 5–6 | 目前入口；`STEP` 常數切換階段 |
+| `requirements.txt` | — | pandas, sklearn, catboost, optuna |
+
+執行：
+
+```bash
+conda run -n base python train.py
+```
+
+產出：`submission_step{N}.csv`（N = `train.py` 內 `STEP`）。
+
+### 10.4 與研究預期對照
+
+| 研究預期 | 實際 | 結論 |
+|----------|------|------|
+| 標準解法 LB 0.78–0.82 | **0.816** | 達標，靠 notebook 級 FE |
+| 路徑 2（自研 Pipeline）LB 0.78–0.82 | Step 4 0.782 | 接近下緣；Tier1 配方不足 |
+| HF / 頂尖合法上限 ~0.84 | 未測 | Step 6 調參後再評估 |
+
+### 10.5 參考實作（本專案採用）
+
+- **Step 5 採用**：[titanic-81-57-leaderboard-top-1-no-cheating.ipynb](../titanic-81-57-leaderboard-top-1-no-cheating.ipynb)（作者聲稱無作弊 LB 0.81578，本專案重現一致）
+- **LB 1.0 解析**：[How top LB got their score](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
+
 ---
 
 ## 參考連結
@@ -409,6 +476,8 @@ submission.csv（418 列）
 | Alexis Cook 教學 | https://www.kaggle.com/code/alexisbcook/titanic-tutorial |
 | sklearn ColumnTransformer 範例 | https://scikit-learn.org/stable/auto_examples/compose/plot_column_transformer_mixed_types.html |
 | Advanced FE Tutorial (RF 0.837) | https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/ |
+| **Kaggle 815 notebook（本專案 Step 5）** | `titanic-81-57-leaderboard-top-1-no-cheating.ipynb` |
+| LB 1.0 作弊解析 | https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn |
 | HF 模型參考（CatBoost ensemble） | https://huggingface.co/eriksarriegui/titanic-survival-predictor |
 | GitHub 集成案例 | https://github.com/Ajayvarmaramineni/titanic-kaggle |
 | Leak-free Pipeline 範本（推薦骨架） | https://github.com/jameskoero/titanic-survival-prediction |

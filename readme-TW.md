@@ -11,11 +11,13 @@
 
 ## 成果摘要
 
-| 提交檔 | 方法 | CV（5-fold） | Public LB |
-|--------|------|--------------|-----------|
-| `submission_step5.csv` | Kaggle 815 notebook 特徵工程 + CatBoost | 0.824 | **0.81578** |
-| `submission_step7b.csv` | Geeky 進階 FE 教學（嚴格 ipynb 移植）+ RF | 0.836 | **0.81578** |
-| `submission_step_blend.csv` | Step 5 與 7b **存活機率平均** | 0.833 | **0.81578** |
+
+| 提交檔                         | 方法                                  | CV（5-fold） | Public LB   |
+| --------------------------- | ----------------------------------- | ---------- | ----------- |
+| `submission_step5.csv`      | Kaggle 815 notebook 特徵工程 + CatBoost | 0.824      | **0.81578** |
+| `submission_step7b.csv`     | Geeky 進階 FE 教學（嚴格 ipynb 移植）+ RF     | 0.836      | **0.81578** |
+| `submission_step_blend.csv` | Step 5 與 7b **存活機率平均**              | 0.833      | **0.81578** |
+
 
 三條不同 pipeline 在 public 榜上同分（約 341 / 418 題正確）。**對外展示以 Step 5 為主**；blend 為集成實驗（較 Step 5 改動 6 筆硬標籤，分數不變——對錯抵銷）。
 
@@ -67,15 +69,17 @@ docs/
 
 ## 演進路線
 
-| Step | 變更內容 | Public LB | 心得 |
-|------|----------|-----------|------|
-| 1–2 | 基礎特徵 / OneHot RF | 0.74–0.75 | 特徵不足 |
-| 3–4 | CatBoost / soft voting | 0.77–0.78 | 換模型但 FE 沒跟上 |
-| **5** | **815 notebook FE + CatBoost** | **0.81578** | **突破（+3% LB）** |
-| 6 | Step 5 特徵 + Optuna | 0.794 | CV 0.847 但 LB 下降 |
-| 7 | Geeky target encoding（鬆散） | 0.734 | notebook 移植不完整 |
-| 7b | Geeky 嚴格 ipynb 移植 | 0.81578 | scaler/encoder 分開 fit 很關鍵 |
-| blend | (p₅ + p₇b) / 2 | 0.81578 | 集成實驗；public 與單模平手 |
+
+| Step  | 變更內容                           | Public LB   | 心得                        |
+| ----- | ------------------------------ | ----------- | ------------------------- |
+| 1–2   | 基礎特徵 / OneHot RF               | 0.74–0.75   | 特徵不足                      |
+| 3–4   | CatBoost / soft voting         | 0.77–0.78   | 換模型但 FE 沒跟上               |
+| **5** | **815 notebook FE + CatBoost** | **0.81578** | **突破（+3% LB）**            |
+| 6     | Step 5 特徵 + Optuna             | 0.794       | CV 0.847 但 LB 下降          |
+| 7     | Geeky target encoding（鬆散）      | 0.734       | notebook 移植不完整            |
+| 7b    | Geeky 嚴格 ipynb 移植              | 0.81578     | scaler/encoder 分開 fit 很關鍵 |
+| blend | (p₅ + p₇b) / 2                 | 0.81578     | 集成實驗；public 與單模平手         |
+
 
 ---
 
@@ -92,18 +96,22 @@ docs/
 
 ## 資料說明
 
-| 檔案 | 說明 |
-|------|------|
-| `data/train.csv` | 891 位乘客，含 `Survived` 標籤 |
-| `data/test.csv` | 418 位乘客，需預測存活與否 |
-| `data/gender_submission.csv` | 範例提交檔 |
 
-| 欄位 | 說明 |
-|------|------|
-| `PassengerId` | 乘客編號 |
-| `Survived` | 目標（僅 train）：1 = 存活，0 = 未存活 |
-| `Pclass` | 艙等（1 / 2 / 3） |
-| `Name`, `Sex`, `Age`, `SibSp`, `Parch`, `Ticket`, `Fare`, `Cabin`, `Embarked` | 特徵 |
+| 檔案                           | 說明                      |
+| ---------------------------- | ----------------------- |
+| `data/train.csv`             | 891 位乘客，含 `Survived` 標籤 |
+| `data/test.csv`              | 418 位乘客，需預測存活與否         |
+| `data/gender_submission.csv` | 範例提交檔                   |
+
+
+
+| 欄位                                                                            | 說明                         |
+| ----------------------------------------------------------------------------- | -------------------------- |
+| `PassengerId`                                                                 | 乘客編號                       |
+| `Survived`                                                                    | 目標（僅 train）：1 = 存活，0 = 未存活 |
+| `Pclass`                                                                      | 艙等（1 / 2 / 3）              |
+| `Name`, `Sex`, `Age`, `SibSp`, `Parch`, `Ticket`, `Fare`, `Cabin`, `Embarked` | 特徵                         |
+
 
 **評分指標：** 測試集準確率（Accuracy）。
 
@@ -120,7 +128,7 @@ docs/
 - [Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) — Step 5 配方
 - [進階 FE 教學](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/) — Step 7b 配方
 - [Alexis Cook 教學](https://www.kaggle.com/code/alexisbcook/titanic-tutorial)
-- [LB 1.0 如何作弊](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
+- [LB 1.0 如何作U弊](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
 
 ---
 

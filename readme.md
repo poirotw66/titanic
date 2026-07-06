@@ -56,10 +56,12 @@ docs/
   CLOSE.md                     # Wrap-up checklist & portfolio summary
   ml-research-best-model.md    # Phase 1 research + full step log
   ml-plan-validate.md          # Phase 2 plan & environment validation
-
-titanic-81-57-leaderboard-top-1-no-cheating.ipynb      # Step 5 reference
-titanic-advanced-feature-engineering-tutorial.ipynb    # Step 7b reference
 ```
+
+Reference notebooks (external, not vendored in this repo):
+
+- [Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) — Step 5 recipe
+- [Advanced FE tutorial](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/) — Step 7b recipe
 
 ---
 
@@ -115,8 +117,8 @@ Full write-up: [docs/CLOSE.md](docs/CLOSE.md) · Research: [docs/ml-research-bes
 
 ## References
 
-- [Kaggle 815 notebook](titanic-81-57-leaderboard-top-1-no-cheating.ipynb) — Step 5 recipe
-- [Advanced FE tutorial](titanic-advanced-feature-engineering-tutorial.ipynb) — Step 7b recipe
+- [Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) — Step 5 recipe
+- [Advanced FE tutorial](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/) — Step 7b recipe
 - [Alexis Cook tutorial](https://www.kaggle.com/code/alexisbcook/titanic-tutorial)
 - [How top LB got 1.0 (cheating)](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
 

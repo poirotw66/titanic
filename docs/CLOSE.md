@@ -43,10 +43,9 @@ docs/
   ml-research-best-model.md    # Phase 1 研究 + 全步驟 LB 紀錄
   ml-plan-validate.md          # Phase 2 計畫與環境驗證
   CLOSE.md                     # 本文件
-
-titanic-81-57-leaderboard-top-1-no-cheating.ipynb   # Step 5 參考
-titanic-advanced-feature-engineering-tutorial.ipynb # Step 7b 參考
 ```
+
+參考 notebook（外部連結）：[Kaggle 815](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) · [Geeky FE](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/)
 
 ### 演進路線（摘要）
 

@@ -1,4 +1,4 @@
-"""Feature engineering ported from titanic-81-57-leaderboard-top-1-no-cheating.ipynb."""
+"""Feature engineering ported from Kaggle 815 notebook (eu1234)."""
 
 from __future__ import annotations
 

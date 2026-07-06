@@ -1,4 +1,4 @@
-"""Strict port of titanic-advanced-feature-engineering-tutorial.ipynb (Gunes Evitan)."""
+"""Strict port of Geeky Codes advanced FE tutorial (Gunes Evitan)."""
 
 from __future__ import annotations
 

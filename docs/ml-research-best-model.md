@@ -246,7 +246,7 @@ train.csv + test.csv
 
 ### Step 5 — 參考 notebook（實際最佳）
 
-- [x] 移植 [`titanic-81-57-leaderboard-top-1-no-cheating.ipynb`](../titanic-81-57-leaderboard-top-1-no-cheating.ipynb) → `features_kaggle815.py`
+- [x] 移植 [Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) → `features_kaggle815.py`
 - [x] train+test 合併填補、Status、Deck 多步推斷、`Lucky_family` 等
 - [x] CatBoost（depth=4, iter=1000, lr=0.0005）
 - [x] CV 0.824；**LB 0.81578**
@@ -476,8 +476,8 @@ conda run -n base python train.py --step 7b
 
 ### 10.5 參考實作（本專案採用）
 
-- **Step 5 採用**：[titanic-81-57-leaderboard-top-1-no-cheating.ipynb](../titanic-81-57-leaderboard-top-1-no-cheating.ipynb)（LB 0.81578，本專案重現一致）
-- **Step 7b 採用**：[titanic-advanced-feature-engineering-tutorial.ipynb](../titanic-advanced-feature-engineering-tutorial.ipynb)（嚴格移植，LB 0.81578）
+- **Step 5 採用**：[Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating)（LB 0.81578，本專案重現一致）
+- **Step 7b 採用**：[Advanced FE tutorial](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/)（嚴格移植至 `features_geeky837b.py`，LB 0.81578）
 - **收尾文件**：[CLOSE.md](CLOSE.md)
 - **LB 1.0 解析**：[How top LB got their score](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
 
@@ -491,7 +491,7 @@ conda run -n base python train.py --step 7b
 | Alexis Cook 教學 | https://www.kaggle.com/code/alexisbcook/titanic-tutorial |
 | sklearn ColumnTransformer 範例 | https://scikit-learn.org/stable/auto_examples/compose/plot_column_transformer_mixed_types.html |
 | Advanced FE Tutorial (RF 0.837) | https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/ |
-| **Kaggle 815 notebook（本專案 Step 5）** | `titanic-81-57-leaderboard-top-1-no-cheating.ipynb` |
+| **Kaggle 815 notebook（本專案 Step 5）** | https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating |
 | LB 1.0 作弊解析 | https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn |
 | HF 模型參考（CatBoost ensemble） | https://huggingface.co/eriksarriegui/titanic-survival-predictor |
 | GitHub 集成案例 | https://github.com/Ajayvarmaramineni/titanic-kaggle |

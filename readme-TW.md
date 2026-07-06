@@ -56,10 +56,12 @@ docs/
   CLOSE.md                     # 收尾清單與 portfolio 摘要
   ml-research-best-model.md    # Phase 1 研究與全步驟紀錄
   ml-plan-validate.md          # Phase 2 計畫與環境驗證
-
-titanic-81-57-leaderboard-top-1-no-cheating.ipynb      # Step 5 參考
-titanic-advanced-feature-engineering-tutorial.ipynb    # Step 7b 參考
 ```
+
+參考 notebook（外部連結，本 repo 不內嵌）：
+
+- [Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) — Step 5 配方
+- [進階 FE 教學](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/) — Step 7b 配方
 
 ---
 
@@ -115,8 +117,8 @@ titanic-advanced-feature-engineering-tutorial.ipynb    # Step 7b 參考
 
 ## 參考資源
 
-- [Kaggle 815 notebook](titanic-81-57-leaderboard-top-1-no-cheating.ipynb) — Step 5 配方
-- [進階 FE 教學](titanic-advanced-feature-engineering-tutorial.ipynb) — Step 7b 配方
+- [Kaggle 815 notebook](https://www.kaggle.com/code/eu1234/titanic-81-57-leaderboard-top-1-no-cheating) — Step 5 配方
+- [進階 FE 教學](https://geekycodes.in/python/titanic-advanced-feature-engineering-tutorial/) — Step 7b 配方
 - [Alexis Cook 教學](https://www.kaggle.com/code/alexisbcook/titanic-tutorial)
 - [LB 1.0 如何作弊](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
 

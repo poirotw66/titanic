@@ -411,7 +411,7 @@ submission.csv（418 列）
 - [x] 釐清「無單一官方標準、但有共識配方」
 - [x] 給出本專案三條付現路線
 
-**收尾（2026-07-06）**：**最佳提交 `submission_step5.csv`（LB 0.81578）**。Step 6 Optuna CV↑ LB↓，見 §10。
+**收尾（2026-07-06）**：**最終提交 `submission_step_blend.csv`（Step 5 + 7b 平均機率）**。單模最佳 public LB **0.81578**（Step 5 / 7b）。見 `docs/CLOSE.md`。
 
 ---
 
@@ -425,12 +425,15 @@ submission.csv（418 列）
 | `submission_step2.csv` | Tier1–2 + RF OneHot | 0.827 | 0.74401 |
 | `submission_step3.csv` | Tier1–2 + CatBoost | 0.838 | 0.76794 |
 | `submission_step4.csv` | Tier1 + 正則 RF/CB voting | 0.831 | **0.78229** |
-| `submission_step5.csv` | **Kaggle 815 notebook 配方** | 0.824 | **0.81578** ← **最佳** |
+| `submission_step5.csv` | **Kaggle 815 notebook 配方** | 0.824 | **0.81578** |
 | `submission_step6.csv` | Step 5 特徵 + Optuna CatBoost | 0.847 | 0.79425 |
+| `submission_step7.csv` | Geeky 鬆散版 RF | 0.763 | 0.73444 |
+| `submission_step7b.csv` | Geeky ipynb 嚴格移植 RF | 0.836 | **0.81578** |
+| `submission_step_blend.csv` | **Step 5 + 7b 平均存活機率** | 0.833 | **0.81578** |
 
 性別 baseline（全 female=1）約 **0.765**。LB **1.0** 多為查表作弊，非 ML 目標（見 §9.4）。
 
-**推薦提交**：`submission_step5.csv`
+**推薦提交**：`submission_step5.csv` 或 `submission_step_blend.csv`（public 同分 **0.81578**）；對外展示以 Step 5 為主、blend 為集成實驗。
 
 ### 10.2 關鍵教訓
 
@@ -440,23 +443,28 @@ submission.csv（418 列）
 4. **Deck 不可粗暴 OneHot**（Step 2 教訓）；需 domain 多步推斷。
 5. **簡單集成 + 正則化**（Step 4）有助 LB，但不及成熟 FE 配方。
 6. **Optuna 追 CV 有害**（Step 6）：CV 0.847 → LB 0.794；小資料上超參搜尋易過擬合 fold 模式。
+7. **嚴格 reproduce**（Step 7 vs 7b）：分開 fit scaler/encoder 差 ~7% CV；LB 可相同（10 筆分歧互抵）。
+8. **Blend 互補**：Step 5 與 7b 97.6% 硬標籤一致；平均機率針對分歧樣本，目標更穩的 private LB。
 
 ### 10.3 程式碼對照
 
 | 模組 | 對應 Step | 說明 |
 |------|-----------|------|
-| `train.py` + `features.py` | 1–4（歷史） | Pipeline / Tier1 / voting；Step 5+ 以 `features_kaggle815` 為主 |
-| `features_kaggle815.py` | 5+ | notebook 特徵工程移植 |
-| `train.py` | 5–6 | 預設 Step 5（最佳 LB）；`--step 6` 跑 Optuna |
-| `requirements.txt` | — | pandas, sklearn, catboost, optuna |
+| `train.py` + `features.py` | 1–4（歷史） | Pipeline / Tier1 / voting |
+| `features_kaggle815.py` | 5, blend | 815 notebook 特徵工程 |
+| `features_geeky837.py` | 7 | Geeky 鬆散版（實驗） |
+| `features_geeky837b.py` | 7b, blend | ipynb 嚴格移植 |
+| `train.py` | 5–7b, **blend** | 預設 **blend**；`--step 6` Optuna |
 
 執行：
 
 ```bash
-conda run -n base python train.py
+conda run -n base python train.py              # blend（最終）
+conda run -n base python train.py --step 5
+conda run -n base python train.py --step 7b
 ```
 
-產出：`submission_step{N}.csv`（N = `train.py` 內 `STEP`）。
+產出：`submission_step{blend,5,7b,...}.csv`。
 
 ### 10.4 與研究預期對照
 
@@ -464,11 +472,13 @@ conda run -n base python train.py
 |----------|------|------|
 | 標準解法 LB 0.78–0.82 | **0.816** | 達標，靠 notebook 級 FE |
 | 路徑 2（自研 Pipeline）LB 0.78–0.82 | Step 4 0.782 | 接近下緣；Tier1 配方不足 |
-| HF / 頂尖合法上限 ~0.84 | Step 5 **0.816** | 已達標準上緣；Step 6 未改善 |
+| HF / 頂尖合法上限 ~0.84 | Step 5/7b **0.816** | 已達標準上緣；blend 為最終交付 |
 
 ### 10.5 參考實作（本專案採用）
 
-- **Step 5 採用**：[titanic-81-57-leaderboard-top-1-no-cheating.ipynb](../titanic-81-57-leaderboard-top-1-no-cheating.ipynb)（作者聲稱無作弊 LB 0.81578，本專案重現一致）
+- **Step 5 採用**：[titanic-81-57-leaderboard-top-1-no-cheating.ipynb](../titanic-81-57-leaderboard-top-1-no-cheating.ipynb)（LB 0.81578，本專案重現一致）
+- **Step 7b 採用**：[titanic-advanced-feature-engineering-tutorial.ipynb](../titanic-advanced-feature-engineering-tutorial.ipynb)（嚴格移植，LB 0.81578）
+- **收尾文件**：[CLOSE.md](CLOSE.md)
 - **LB 1.0 解析**：[How top LB got their score](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
 
 ---

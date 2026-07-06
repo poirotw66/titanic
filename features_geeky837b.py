@@ -272,15 +272,16 @@ def _encode_features(
 
 def build_geeky837b_matrices(
     df_train_raw: pd.DataFrame,
-    df_test_raw: pd.DataFrame,
+    df_holdout_raw: pd.DataFrame,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, pd.Series, list[str]]:
-    """Notebook-faithful feature matrices (full train + test, pre-CV)."""
-    df_all = concat_df(df_train_raw, df_test_raw)
+    """Notebook-faithful feature matrices (train block + holdout block, pre-CV)."""
+    train_end = len(df_train_raw) - 1
+    df_all = concat_df(df_train_raw, df_holdout_raw)
     _impute_and_deck(df_all)
     _feature_engineering(df_all)
 
-    df_train = df_all.loc[:TRAIN_END].copy()
-    df_test = df_all.loc[TRAIN_END + 1 :].copy()
+    df_train = df_all.loc[:train_end].copy()
+    df_test = df_all.loc[train_end + 1 :].copy()
     test_passenger_ids = df_test["PassengerId"].copy()
 
     _target_encoding(df_train, df_test)
@@ -288,6 +289,15 @@ def build_geeky837b_matrices(
 
     train_feature_df = df_train.drop(columns=DROP_COLS)
     test_feature_df = df_test.drop(columns=DROP_COLS)
+
+    # ponytail: fold CV may yield different one-hot widths; align to train columns
+    for col in train_feature_df.columns:
+        if col not in test_feature_df.columns:
+            test_feature_df[col] = 0.0
+    for col in test_feature_df.columns:
+        if col not in train_feature_df.columns:
+            train_feature_df[col] = 0.0
+    test_feature_df = test_feature_df[train_feature_df.columns]
 
     x_train = StandardScaler().fit_transform(train_feature_df)
     y_train = df_train["Survived"].values
@@ -306,27 +316,23 @@ def cross_validate_leaderboard(x_train: np.ndarray, y_train: np.ndarray) -> list
     return scores
 
 
+def predict_leaderboard_probabilities(
+    x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray
+) -> np.ndarray:
+    """5-fold test survival probability average — notebook submission recipe."""
+    skf = StratifiedKFold(n_splits=N_FOLDS, random_state=N_FOLDS, shuffle=True)
+    survival_probs = np.zeros(len(x_test))
+
+    for trn_idx, _ in skf.split(x_train, y_train):
+        model = RandomForestClassifier(**LEADERBOARD_RF_PARAMS)
+        model.fit(x_train[trn_idx], y_train[trn_idx])
+        survival_probs += model.predict_proba(x_test)[:, 1] / N_FOLDS
+
+    return survival_probs
+
+
 def predict_leaderboard_submission(
     x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray
 ) -> np.ndarray:
-    """5-fold test prob average — notebook submission recipe."""
-    skf = StratifiedKFold(n_splits=N_FOLDS, random_state=N_FOLDS, shuffle=True)
-    prob_columns = [
-        f"Fold_{fold}_Prob_{label}"
-        for fold in range(1, N_FOLDS + 1)
-        for label in (0, 1)
-    ]
-    probs = pd.DataFrame(np.zeros((len(x_test), len(prob_columns))), columns=prob_columns)
-
-    for fold, (trn_idx, _) in enumerate(skf.split(x_train, y_train), 1):
-        model = RandomForestClassifier(**LEADERBOARD_RF_PARAMS)
-        model.fit(x_train[trn_idx], y_train[trn_idx])
-        test_proba = model.predict_proba(x_test)
-        probs[f"Fold_{fold}_Prob_0"] = test_proba[:, 0]
-        probs[f"Fold_{fold}_Prob_1"] = test_proba[:, 1]
-
-    class_survived = [col for col in probs.columns if col.endswith("Prob_1")]
-    probs["1"] = probs[class_survived].sum(axis=1) / N_FOLDS
-    probs["pred"] = 0
-    probs.loc[probs["1"] >= 0.5, "pred"] = 1
-    return probs["pred"].astype(int).values
+    survival_probs = predict_leaderboard_probabilities(x_train, y_train, x_test)
+    return (survival_probs >= 0.5).astype(int)

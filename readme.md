@@ -1,118 +1,127 @@
 # Titanic — Machine Learning from Disaster
 
-> Kaggle Getting Started competition: predict which passengers survived the Titanic shipwreck.
+> End-to-end Kaggle survival prediction: research → iterative feature engineering → ensemble.  
+> **Public LB: 0.81578** (top of the legitimate-solution range)
 
-**Competition:** [Titanic - Machine Learning from Disaster](https://kaggle.com/competitions/titanic)  
-**Citation:** Will Cukierski. Titanic - Machine Learning from Disaster. https://kaggle.com/competitions/titanic, 2012. Kaggle.
+**繁體中文** → [readme-TW.md](readme-TW.md)
 
----
-
-## Overview
-
-This is a classic introductory machine learning competition on Kaggle. The goal is to build a model that predicts whether each passenger in the test set survived the sinking of the RMS Titanic.
-
-The competition runs indefinitely with a **rolling leaderboard** (submissions older than two months are invalidated).
+**Competition:** [Titanic - Machine Learning from Disaster](https://kaggle.com/competitions/titanic)
 
 ---
 
-## The Challenge
+## Results
 
-On April 15, 1912, during her maiden voyage, the RMS Titanic sank after colliding with an iceberg. There were not enough lifeboats for everyone onboard, resulting in the deaths of **1,502 out of 2,224** passengers and crew.
+| Submission | Method | CV (5-fold) | Public LB |
+|------------|--------|-------------|-----------|
+| `submission_step5.csv` | Kaggle 815 notebook FE + CatBoost | 0.824 | **0.81578** |
+| `submission_step7b.csv` | Geeky advanced FE tutorial (strict ipynb port) + RF | 0.836 | **0.81578** |
+| `submission_step_blend.csv` | Average of Step 5 & 7b survival probabilities | 0.833 | **0.81578** |
 
-While luck played a role, some groups of people were more likely to survive than others. Your task is to answer: **what sorts of people were more likely to survive?** using passenger data (name, age, gender, socio-economic class, etc.).
+Three different pipelines converge on the same public score (~341 / 418 correct). **Step 5** is the primary portfolio story; **blend** is the ensemble experiment (6 hard-label changes vs Step 5, score unchanged due to offsetting errors).
+
+Gender baseline (predict all female = survived) is ~0.765. Leaderboard **1.0** scores are mostly lookup cheating, not a realistic ML target.
+
+---
+
+## Quick start
+
+```bash
+pip install -r requirements.txt
+
+python train.py              # blend (default) → submission_step_blend.csv
+python train.py --step 5     # CatBoost single model → submission_step5.csv
+python train.py --step 7b    # RF strict port   → submission_step7b.csv
+python train.py --step 6     # Optuna experiment (CV↑ LB↓)
+python train.py --step 7     # Geeky loose port (failed LB)
+```
+
+With conda: `conda run -n base python train.py`
+
+Submission CSVs are gitignored; generate them locally.
+
+---
+
+## Project structure
+
+```
+train.py                       # CLI: --step 5 | 6 | 7 | 7b | blend
+features_kaggle815.py          # Step 5 — Kaggle 815 notebook feature engineering
+features_geeky837b.py          # Step 7b — strict port of advanced FE tutorial
+features_geeky837.py           # Step 7 — loose port (experiment)
+features.py                    # Steps 1–4 — Pipeline / Tier1 / voting
+
+data/train.csv, data/test.csv  # Kaggle competition data
+
+docs/
+  CLOSE.md                     # Wrap-up checklist & portfolio summary
+  ml-research-best-model.md    # Phase 1 research + full step log
+  ml-plan-validate.md          # Phase 2 plan & environment validation
+
+titanic-81-57-leaderboard-top-1-no-cheating.ipynb      # Step 5 reference
+titanic-advanced-feature-engineering-tutorial.ipynb    # Step 7b reference
+```
+
+---
+
+## Approach (iterative steps)
+
+| Step | What changed | Public LB | Takeaway |
+|------|----------------|-----------|----------|
+| 1–2 | Basic features / OneHot RF | 0.74–0.75 | Features too weak |
+| 3–4 | CatBoost / soft voting | 0.77–0.78 | Model change without strong FE |
+| **5** | **815 notebook FE + CatBoost** | **0.81578** | **Breakthrough (+3% LB)** |
+| 6 | Optuna on Step 5 features | 0.794 | CV 0.847 but LB dropped |
+| 7 | Geeky target encoding (loose) | 0.734 | Incomplete notebook port |
+| 7b | Geeky strict ipynb port | 0.81578 | Separate scaler/encoder matters |
+| blend | (p₅ + p₇b) / 2 | 0.81578 | Ensemble experiment; public tie |
+
+---
+
+## Lessons learned
+
+1. **Feature engineering > hyperparameter tuning** — Step 5 FE alone moved LB ~0.782 → 0.816; Optuna hurt LB.
+2. **High CV ≠ high LB** — small train set (891) vs test set (418); OOF can mislead.
+3. **Strict reproduction matters** — Step 7 vs 7b differed ~7% CV on scaler/encoder fit details.
+4. **Know when to stop** — 0.81578 is the practical ceiling for honest solutions; chasing 1.0 is pointless.
+
+Full write-up: [docs/CLOSE.md](docs/CLOSE.md) · Research: [docs/ml-research-best-model.md](docs/ml-research-best-model.md)
 
 ---
 
 ## Data
 
-This project includes the competition datasets under `data/`:
-
 | File | Description |
 |------|-------------|
-| `data/train.csv` | 891 passengers with features and the ground-truth `Survived` label |
-| `data/test.csv` | 418 passengers without labels — predict survival for these |
-| `data/gender_submission.csv` | Example submission file |
-
-### Features (`train.csv` / `test.csv`)
+| `data/train.csv` | 891 passengers with `Survived` label |
+| `data/test.csv` | 418 passengers — predict survival |
+| `data/gender_submission.csv` | Example submission |
 
 | Column | Description |
 |--------|-------------|
-| `PassengerId` | Unique passenger identifier |
-| `Survived` | Target (train only): `1` = survived, `0` = did not survive |
-| `Pclass` | Ticket class (1 = 1st, 2 = 2nd, 3 = 3rd) |
-| `Name` | Passenger name |
-| `Sex` | Gender |
-| `Age` | Age in years |
-| `SibSp` | Number of siblings / spouses aboard |
-| `Parch` | Number of parents / children aboard |
-| `Ticket` | Ticket number |
-| `Fare` | Passenger fare |
-| `Cabin` | Cabin number |
-| `Embarked` | Port of embarkation (C = Cherbourg, Q = Queenstown, S = Southampton) |
+| `PassengerId` | Unique ID |
+| `Survived` | Target (train only): 1 = survived, 0 = did not |
+| `Pclass` | Ticket class (1st / 2nd / 3rd) |
+| `Name`, `Sex`, `Age`, `SibSp`, `Parch`, `Ticket`, `Fare`, `Cabin`, `Embarked` | Features |
 
-Use patterns in `train.csv` to predict survival for the 418 passengers in `test.csv`.
+**Metric:** Accuracy on the test set.
 
 ---
 
-## Evaluation
+## Dependencies
 
-**Metric:** Accuracy — the percentage of passengers correctly predicted.
-
-For each passenger in the test set, predict `0` (deceased) or `1` (survived).
+`pandas`, `numpy`, `scikit-learn`, `catboost`, `optuna` (Step 6 only) — see [requirements.txt](requirements.txt).
 
 ---
 
-## Submission Format
+## References
 
-Submit a CSV with **exactly 418 rows plus a header**. No extra columns or rows.
-
-| Column | Description |
-|--------|-------------|
-| `PassengerId` | Passenger ID (any order) |
-| `Survived` | Binary prediction: `1` = survived, `0` = deceased |
-
-Example:
-
-```csv
-PassengerId,Survived
-892,0
-893,1
-894,0
-```
-
-You may submit up to **10 predictions per day** on Kaggle.
-
----
-
-## Getting Started
-
-1. **Explore the data** — inspect `data/train.csv` and `data/test.csv`.
-2. **Build a model** — train on labeled data, tune features, and validate locally.
-3. **Generate predictions** — output a submission CSV for the test set.
-4. **Submit on Kaggle** — upload via **Submit Predictions** and check the leaderboard.
-
-### Recommended Resources
-
-- [Alexis Cook's Titanic Tutorial](https://www.kaggle.com/code/alexisbcook/titanic-tutorial) — step-by-step first submission
-- [Competition Notebooks](https://www.kaggle.com/competitions/titanic/code) — community insights and approaches
-- [Titanic Discussion Forum](https://www.kaggle.com/competitions/titanic/discussion) — help and tips from other competitors
-- [Kaggle Discord](https://discord.gg/kaggle) — competitions, careers, and community
-
----
-
-## FAQ
-
-**What is a Getting Started competition?**  
-Designed for newcomers to data science and Kaggle. No cash prize, rolling timeline, and focused on learning the platform.
-
-**Why did my team disappear from the leaderboard?**  
-Submissions older than two months are invalidated. Teams with no recent submissions also drop off to keep the leaderboard fresh.
-
-**Where do I get help?**  
-Use the [Titanic Discussion Forum](https://www.kaggle.com/competitions/titanic/discussion). Kaggle does not have a dedicated support team for individual code issues.
+- [Kaggle 815 notebook](titanic-81-57-leaderboard-top-1-no-cheating.ipynb) — Step 5 recipe
+- [Advanced FE tutorial](titanic-advanced-feature-engineering-tutorial.ipynb) — Step 7b recipe
+- [Alexis Cook tutorial](https://www.kaggle.com/code/alexisbcook/titanic-tutorial)
+- [How top LB got 1.0 (cheating)](https://www.kaggle.com/tarunpaparaju/how-top-lb-got-their-score-use-titanic-to-learn)
 
 ---
 
 ## License
 
-Data and competition rules are governed by [Kaggle's competition terms](https://www.kaggle.com/competitions/titanic/rules).
+Competition data and rules: [Kaggle terms](https://www.kaggle.com/competitions/titanic/rules).

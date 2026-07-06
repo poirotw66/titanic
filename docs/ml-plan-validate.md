@@ -14,7 +14,7 @@
 - [x] 本地 vs Job 路徑已決定：**本地 CPU**，不需 HF Job / GPU
 - [x] 依賴已選定並通過 smoke test
 
-**下一步**：Phase 3 完成（Step 5 LB 0.816）；Step 6 Optuna 進行中。
+**下一步**：Phase 3–5 完成。最終交付 **blend**（Step 5 + 7b）；見 [`CLOSE.md`](CLOSE.md)。
 
 ---
 
@@ -28,8 +28,10 @@
 | 4 | RF/CB soft voting | done | CV 0.831 / LB 0.782 |
 | 5 | Kaggle 815 notebook | done | CV 0.824 / **LB 0.816** |
 | 6 | Optuna 調參 | done | CV 0.847 / LB 0.794（CV↑ LB↓） |
+| 7 | Geeky 鬆散 / 7b 嚴格 | done | 7b LB 0.816；與 Step 5 平手 |
+| **blend** | Step 5 + 7b 平均機率 | done | 最終提交，見 `train.py` |
 
-**最佳提交**：Step 5（LB **0.81578**）
+**最佳 public LB**：0.81578（Step 5 / 7b）。**推薦提交**：`submission_step_blend.csv`。
 
 採用研究筆記 **路徑 2**：sklearn `Pipeline` 骨架 + `CatBoostClassifier` + Tier 1–2 特徵。
 

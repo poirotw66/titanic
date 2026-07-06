@@ -1,4 +1,4 @@
-"""Titanic training: Steps 5–7b (Step 5 best LB; Step 7b = strict Geeky ipynb)."""
+"""Titanic training: Steps 5–7b and blend (portfolio final: --step blend)."""
 
 from __future__ import annotations
 
@@ -15,8 +15,10 @@ from sklearn.model_selection import StratifiedKFold
 
 from features_geeky837 import engineer_geeky837
 from features_geeky837b import (
+    LEADERBOARD_RF_PARAMS as GEEKY_RF_PARAMS,
     build_geeky837b_matrices,
     cross_validate_leaderboard,
+    predict_leaderboard_probabilities,
     predict_leaderboard_submission,
 )
 from features_kaggle815 import engineer_kaggle815
@@ -35,7 +37,7 @@ FEATURE_COLUMNS = [
     "Embarked",
 ]
 TARGET_COLUMN = "Survived"
-BEST_STEP = 5
+BEST_STEP = "blend"
 CV_FOLDS = 5
 RANDOM_STATE = 42
 OPTUNA_TRIALS = 50
@@ -199,6 +201,86 @@ def run_step7(
     print(f"Predicted survival rate: {predictions.mean():.3f}")
 
 
+def predict_step5_survival_probs(
+    x_train: pd.DataFrame,
+    y_train: pd.Series,
+    x_test: pd.DataFrame,
+    params: dict[str, object] | None = None,
+) -> np.ndarray:
+    x_train_fe, x_test_fe = engineer_kaggle815(x_train, x_test, y_train)
+    model = CatBoostClassifier(**(params or STEP5_PARAMS))
+    model.fit(x_train_fe, y_train)
+    return model.predict_proba(x_test_fe)[:, 1]
+
+
+def predict_step7b_survival_probs(train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
+    x_train, y_train, x_test, _, _ = build_geeky837b_matrices(train, test)
+    return predict_leaderboard_probabilities(x_train, y_train, x_test)
+
+
+def cross_validate_blend(train: pd.DataFrame, test: pd.DataFrame) -> list[float]:
+    """OOF blend CV: mean of Step 5 CatBoost and Step 7b RF val probabilities."""
+    y_train = train[TARGET_COLUMN]
+    feature_cols = [c for c in train.columns if c != TARGET_COLUMN]
+    cv = StratifiedKFold(
+        n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE
+    )
+    oof_probs = np.zeros(len(train))
+    scores: list[float] = []
+
+    for fold, (trn_idx, val_idx) in enumerate(cv.split(train, y_train), 1):
+        train_fold = train.iloc[trn_idx]
+        val_fold = train.iloc[val_idx]
+        x_tr = train_fold[feature_cols]
+        y_tr = train_fold[TARGET_COLUMN]
+        x_val = val_fold[feature_cols]
+        y_val = val_fold[TARGET_COLUMN]
+
+        p5 = predict_step5_survival_probs(x_tr, y_tr, x_val)
+
+        x_tr_7b, y_tr_7b, x_val_7b, _, _ = build_geeky837b_matrices(train_fold, val_fold)
+        model_7b = RandomForestClassifier(**GEEKY_RF_PARAMS)
+        model_7b.fit(x_tr_7b, y_tr_7b)
+        p7b = model_7b.predict_proba(x_val_7b)[:, 1]
+
+        blend_probs = (p5 + p7b) / 2
+        oof_probs[val_idx] = blend_probs
+        fold_preds = (blend_probs >= 0.5).astype(int)
+        scores.append(float(accuracy_score(y_val, fold_preds)))
+        print(f"  Fold {fold} blend CV: {scores[-1]:.4f}")
+
+    return scores
+
+
+def run_blend(train: pd.DataFrame, test: pd.DataFrame) -> None:
+    print("Final blend: average survival probability (Step 5 CatBoost + Step 7b RF)")
+
+    x_train = train[FEATURE_COLUMNS]
+    y_train = train[TARGET_COLUMN]
+    x_test = test[FEATURE_COLUMNS]
+    test_ids = test["PassengerId"]
+
+    print("Blend OOF CV (5-fold, aligned folds):")
+    scores = cross_validate_blend(train, test)
+    scores_arr = pd.Series(scores)
+    print(f"CV accuracy ({CV_FOLDS}-fold): {scores_arr.round(4).tolist()}")
+    print(f"CV mean: {scores_arr.mean():.4f} (+/- {scores_arr.std():.4f})")
+
+    p5 = predict_step5_survival_probs(x_train, y_train, x_test)
+    p7b = predict_step7b_survival_probs(train, test)
+    blend_probs = (p5 + p7b) / 2
+    predictions = (blend_probs >= 0.5).astype(int)
+
+    pred5 = (p5 >= 0.5).astype(int)
+    pred7b = (p7b >= 0.5).astype(int)
+    print(f"Vs step5 hard labels: {(pred5 == predictions).sum()}/{len(predictions)} agree")
+    print(f"Vs step7b hard labels: {(pred7b == predictions).sum()}/{len(predictions)} agree")
+
+    _write_submission(test_ids, predictions, step="blend")
+    print(f"Mean blend P(survive): {blend_probs.mean():.3f}")
+    print(f"Predicted survival rate: {predictions.mean():.3f}")
+
+
 def run_step7b(train: pd.DataFrame, test: pd.DataFrame) -> None:
     print("Geeky 0.837 strict ipynb port: separate scalers/encoders, skf random_state=5")
 
@@ -218,11 +300,16 @@ def run_step7b(train: pd.DataFrame, test: pd.DataFrame) -> None:
     print(f"Predicted survival rate: {predictions.mean():.3f}")
 
 
+def _submission_path(step: int | str) -> Path:
+    name = "submission_step_blend.csv" if step == "blend" else f"submission_step{step}.csv"
+    return Path(__file__).resolve().parent / name
+
+
 def _write_submission(
     test_ids: pd.Series, predictions: np.ndarray, step: int | str
 ) -> None:
     submission = pd.DataFrame({"PassengerId": test_ids, "Survived": predictions})
-    out_path = Path(__file__).resolve().parent / f"submission_step{step}.csv"
+    out_path = _submission_path(step)
     submission.to_csv(out_path, index=False)
     print(f"Wrote {len(submission)} rows to {out_path}")
 
@@ -232,17 +319,20 @@ def main() -> None:
     parser.add_argument(
         "--step",
         type=str,
-        choices=["5", "6", "7", "7b"],
-        default=str(BEST_STEP),
-        help="5=Kaggle815 (LB best), 6=Optuna, 7=Geeky837 loose, 7b=Geeky ipynb strict",
+        choices=["5", "6", "7", "7b", "blend"],
+        default=BEST_STEP,
+        help="blend=final (default), 5=Kaggle815, 6=Optuna, 7=Geeky loose, 7b=Geeky strict",
     )
     args = parser.parse_args()
     step = args.step
 
-    if step == "7b":
+    if step in ("7b", "blend"):
         train = pd.read_csv(DATA_DIR / "train.csv")
         test = pd.read_csv(DATA_DIR / "test.csv")
-        run_step7b(train, test)
+        if step == "7b":
+            run_step7b(train, test)
+        else:
+            run_blend(train, test)
         return
 
     x_train, y_train, x_test, test_ids = load_data()

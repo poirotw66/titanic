@@ -27,7 +27,9 @@
 | 3 | CatBoost | done | CV 0.838 / LB 0.768 |
 | 4 | RF/CB soft voting | done | CV 0.831 / LB 0.782 |
 | 5 | Kaggle 815 notebook | done | CV 0.824 / **LB 0.816** |
-| 6 | Optuna 調參 | in progress | 目標 LB ≥ 0.82 |
+| 6 | Optuna 調參 | done | CV 0.847 / LB 0.794（CV↑ LB↓） |
+
+**最佳提交**：Step 5（LB **0.81578**）
 
 採用研究筆記 **路徑 2**：sklearn `Pipeline` 骨架 + `CatBoostClassifier` + Tier 1–2 特徵。
 

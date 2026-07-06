@@ -251,10 +251,11 @@ train.csv + test.csv
 - [x] CatBoost（depth=4, iter=1000, lr=0.0005）
 - [x] CV 0.824；**LB 0.81578**
 
-### Step 6 — Optuna 調參（進行中）
+### Step 6 — Optuna 調參（已完成，LB 反降）
 
-- [ ] 在 Step 5 特徵上搜尋 CatBoost 超參
-- [ ] 目標：LB ≥ 0.82（邊際提升）
+- [x] 50 trials Optuna；CV 0.847（+2.3% vs Step 5）
+- [x] **LB 0.79425**（-2.2% vs Step 5）— CV 優化過擬合 train fold
+- [x] **結論：生產提交用 Step 5**
 
 ---
 
@@ -410,7 +411,7 @@ submission.csv（418 列）
 - [x] 釐清「無單一官方標準、但有共識配方」
 - [x] 給出本專案三條付現路線
 
-**下一步（2026-07-06）**：Step 5 已達 LB 0.816；Step 6 Optuna 微調進行中。詳見 §10。
+**收尾（2026-07-06）**：**最佳提交 `submission_step5.csv`（LB 0.81578）**。Step 6 Optuna CV↑ LB↓，見 §10。
 
 ---
 
@@ -424,9 +425,12 @@ submission.csv（418 列）
 | `submission_step2.csv` | Tier1–2 + RF OneHot | 0.827 | 0.74401 |
 | `submission_step3.csv` | Tier1–2 + CatBoost | 0.838 | 0.76794 |
 | `submission_step4.csv` | Tier1 + 正則 RF/CB voting | 0.831 | **0.78229** |
-| `submission_step5.csv` | **Kaggle 815 notebook 配方** | 0.824 | **0.81578** |
+| `submission_step5.csv` | **Kaggle 815 notebook 配方** | 0.824 | **0.81578** ← **最佳** |
+| `submission_step6.csv` | Step 5 特徵 + Optuna CatBoost | 0.847 | 0.79425 |
 
 性別 baseline（全 female=1）約 **0.765**。LB **1.0** 多為查表作弊，非 ML 目標（見 §9.4）。
+
+**推薦提交**：`submission_step5.csv`
 
 ### 10.2 關鍵教訓
 
@@ -435,6 +439,7 @@ submission.csv（418 列）
 3. **train+test 合併填補**對 Ticket/Deck/Price 有效（notebook 核心技巧）。
 4. **Deck 不可粗暴 OneHot**（Step 2 教訓）；需 domain 多步推斷。
 5. **簡單集成 + 正則化**（Step 4）有助 LB，但不及成熟 FE 配方。
+6. **Optuna 追 CV 有害**（Step 6）：CV 0.847 → LB 0.794；小資料上超參搜尋易過擬合 fold 模式。
 
 ### 10.3 程式碼對照
 
@@ -442,7 +447,7 @@ submission.csv（418 列）
 |------|-----------|------|
 | `train.py` + `features.py` | 1–4（歷史） | Pipeline / Tier1 / voting；Step 5+ 以 `features_kaggle815` 為主 |
 | `features_kaggle815.py` | 5+ | notebook 特徵工程移植 |
-| `train.py` | 5–6 | 目前入口；`STEP` 常數切換階段 |
+| `train.py` | 5–6 | 預設 Step 5（最佳 LB）；`--step 6` 跑 Optuna |
 | `requirements.txt` | — | pandas, sklearn, catboost, optuna |
 
 執行：
@@ -459,7 +464,7 @@ conda run -n base python train.py
 |----------|------|------|
 | 標準解法 LB 0.78–0.82 | **0.816** | 達標，靠 notebook 級 FE |
 | 路徑 2（自研 Pipeline）LB 0.78–0.82 | Step 4 0.782 | 接近下緣；Tier1 配方不足 |
-| HF / 頂尖合法上限 ~0.84 | 未測 | Step 6 調參後再評估 |
+| HF / 頂尖合法上限 ~0.84 | Step 5 **0.816** | 已達標準上緣；Step 6 未改善 |
 
 ### 10.5 參考實作（本專案採用）
 
